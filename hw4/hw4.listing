@@ -1,0 +1,8 @@
+title={$TX_1$},listing only,]
+\tcbsubtitle{Input}
+OP_DUP
+OP_HASH160
+% $H(PK_4)$
+OP_EQUALVERIFY
+OP_CHECKSIG
+\tcbsubtitle{TXO}

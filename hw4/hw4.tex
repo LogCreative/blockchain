@@ -1,0 +1,120 @@
+\documentclass{sjtuarticle}
+\subject{区块链技术}
+\title{第四次作业}
+\author{李子龙\\123033910195}
+\usepackage{multicol}
+\usepackage{ntheorem}
+\usepackage{listings}
+\lstset{aboveskip = 0pt,
+belowskip = 0pt,
+basicstyle=\ttfamily,mathescape=true}
+\usepackage{hyperref}
+\begin{document}
+\maketitle
+
+\begin{solution}
+A = Alice ($PK_1,SK_1$), B = Bob ($PK_2,SK_2$), C = Carol ($PK_3,SK_3$), D = David ($PK_4,SK_4$), E = Eve ($PK_5,SK_5$)
+
+\begin{multicols}{2}
+\begin{description}
+    \item[$TX_1$]:
+    
+        \begin{description}
+            \item[Input]:
+                \begin{description}
+                    \item[prev]: $H(TX_0)$
+                    \item[n]: 0 
+                    \item[scriptSig]:
+\begin{lstlisting}
+Sign($SK_4$,$TX_0$)
+$PK_4$
+\end{lstlisting}
+                \end{description}
+            \item[Output]:
+                \begin{description}
+                    \item[{$TXO[0]$}]:
+                    \begin{description}
+                        \item[value]: 100
+                        \item[scriptPubKey]:
+\begin{lstlisting}
+OP_DUP
+OP_HASH160
+$H(PK_4)$
+OP_EQUALVERIFY
+OP_CHECKSIG
+\end{lstlisting}
+                    \end{description}
+                    \item[{$TXO[1]$}]:
+                    \begin{description}
+                        \item[value]: 100
+                        \item[scriptPubKey]:
+\begin{lstlisting}
+OP_2
+$H(PK_1)$
+$H(PK_2)$
+$H(PK_3)$
+OP_3
+OP_CHECKMULTISIG
+\end{lstlisting}
+                    \end{description}
+                \end{description}    
+        \end{description}
+\columnbreak
+    \item[$TX_2$]:
+        \begin{description}
+            \item[Input]:
+            \begin{description}
+                \item[prev]: $H(TX_1)$
+                \item[n]: 1 
+                \item[scriptSig]:
+\begin{lstlisting}
+OP_0
+Sign($SK_1$,$TX_1$)
+Sign($SK_2$,$TX_1$)
+\end{lstlisting}
+            \end{description}
+            \item[Output]:
+            \begin{description}
+                \item[{$TXO[0]$}]:
+                \begin{description}
+                    \item[value]: 60
+                    \item[scriptPubKey]:
+\begin{lstlisting}
+OP_DUP
+OP_HASH160
+$H(PK_5)$
+OP_EQUALVERIFY
+OP_CHECKSIG
+\end{lstlisting}
+                \end{description}
+                \item[{$TXO[1]$}]:
+                \begin{description}
+                    \item[value]: 40
+                    \item[scriptPubKey]:
+\begin{lstlisting}
+OP_2
+$H(PK_1)$
+$H(PK_2)$
+$H(PK_3)$
+OP_3
+OP_CHECKMULTISIG
+\end{lstlisting}
+                \end{description}
+            \end{description}
+        \end{description}
+\end{description}
+\end{multicols}
+
+这里假设 $TX_1$ 中 D 给 ABC 公司的 TXO 在 [1] 位置上； $TX_2$ 中提供了 A 和 B 的签名，给 E 的 TXO 在 [0] 位置上。这里假设没有交易费。
+
+其中 \verb"OP_CHECKMULTISIG" 的前置参数是
+\begin{lstlisting}
+OP_0 <Sig_1> ... <Sig_$M$> OP_$M$ <PubKeyHash_1> ... <PubKeyHash_$N$> OP_$N$
+\end{lstlisting}
+只需要提供 $N$ 个公钥对应的 $M$ 个签名即可通过 \verb"OP_CHECKMULTISIG"。\verb"OP_0" 是占位符（无操作），\verb"OP_1" ～ \verb"OP_16" 输出对应数字。
+
+参考文献：\url{https://en.bitcoin.it/wiki/Script}
+
+\end{solution}
+
+\end{document}
