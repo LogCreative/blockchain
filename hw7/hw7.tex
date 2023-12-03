@@ -1,0 +1,82 @@
+\documentclass{sjtuarticle}
+\subject{区块链技术}
+\title{第七次作业}
+\author{李子龙\\123033910195}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\usepackage{ntheorem}
+\usepackage[colorlinks]{hyperref}
+
+\def\pk#1{\mathit{PK}_{#1}}
+\def\pki#1#2{\mathit{PK}_{#1#2}^\prime}
+
+\begin{document}
+\maketitle
+
+服务提供商规定一些面值的比特币交易，比如：100, 50, 10, 5, 1, 0.5, 0.1，由于服务提供商会知道公钥 $\mathit{PK}_i$ 与用户 $i$ 的对应关系，根据用户需要洗币的金额 $v$，按照找零算法（先换大面值，再换小面值）计算需要的接收公钥数 $n_i$，服务提供商会要求用户提供对应数目的接收公钥 $\mathit{PK}_{ij}^\prime (j=1,\cdots,n)$。服务提供商将会给用户提供服务的接收公钥地址 $\mathit{PK}_S$。
+
+用户与服务器交换完公钥地址信息后，用户以公钥 $\mathit{PK}_i$ 向服务器地址 $\mathit{PK}_S$ 发送 $v$ 比特币，服务器在接收到其他用户足够的金额的比特币后，会用其他用户发送给服务器产生的 UTXO 发送给用户提供的接收公钥地址 $\mathit{PK}_{ij}^\prime$，这些交易之间会有相对随机的间隔时间，这样就达到了洗币的目的。服务提供者可能会收取服务费。
+
+为了保障隐私，服务者应该保证公钥与用户的对应信息不被泄漏，即 $\pk{i}$ 与 $\pki{i}{j}$ 的对应关系。并且服务者需要保证不会克扣除服务费外的其他比特币。
+
+为了简化讨论的情形，假设服务提供者不收取服务费。这里还假设可以有除了 A，B，C 外的其他用户，比如 D，E，F 等。因为：
+\begin{itemize}
+    \item 服务提供者需要足够多的用户才可以为用户提供足够好的隐私性，以更好地混合，提供更有隐私的服务；
+    \item 使用找零算法可能会产生无法完全匹配的情况，但是好处就是这个算法是确定性的，在用户提交需求时就可以按照预先设定的面额得知需要多少个接收公钥地址，而不是取决于服务器的运营情况；
+    \item 不需要中间服务者的情况可以考虑 Coin-Join，一般 Coin-Join 都会基本让交换的币值相等。如果服务器决定用相同的面值，那么该面值会不可避免地足够小，从而产生过多的交易，而大幅降低服务效率。
+\end{itemize}
+
+回到本题的具体情景，根据找零算法，分拆用户提供的金额：
+\begin{align*}
+    A&: 115 = 100 + 10 + 5 \\
+    B&: 120 = 100 + 10 + 10 \\
+    C&: 12 = 10 + 1 + 1
+\end{align*}
+
+这样，A、B、C都应该各自分别提供3个接收公钥地址 $\mathit{PK}_{Aj}^\prime (j=1,2,3)$、$\mathit{PK}_{Bj}^\prime (j=1,2,3)$、$\mathit{PK}_{Cj}^\prime (j=1,2,3)$。假设服务器又接收到了 D 的 5 比特币，E 的 1 比特币，F 的 1 比特币，他们也都提供了对应的接收公钥地址 $\mathit{PK}_{D1}^\prime, \mathit{PK}_{E1}^\prime, \mathit{PK}_{F1}^\prime$。
+
+交易最终流向如下：
+% \begin{align*}
+%     (\pk{A},115)\rightarrow(\pk{S},115)\rightarrow(\pki{B}{1},100)+[(\pk{S},15)\rightarrow(\pki{B}{2},10)+[(\pk{S},5)\rightarrow(\pki{D}{1},5)]]\\
+%     (\pk{B},120)\rightarrow(\pk{S},120)\rightarrow(\pki{A},100)+(\pki{B}{3},10)+(\pki{C}{1},10)\\
+%     (\pk{C},12)\rightarrow
+% \end{align*}
+\begin{align*}
+    A&: 115 = 100(\pki{B}{1}) + 10(\pki{B}{2}) + 5(\pki{D}{1}) \\
+    B&: 120 = 100(\pki{A}{1}) + 10(\pki{A}{2}) + 10(\pki{C}{1}) \\
+    C&: 12 = 10(\pki{B}{3}) + 1(\pki{E}{1}) + 1(\pki{F}{1})\\
+    D&: 5 = 5(\pki{A}{3}) \\
+    E&: 1 = 1(\pki{C}{2}) \\
+    F&: 1 = 1(\pki{C}{3})
+\end{align*}
+
+具体的交易图如图 \ref{fig:tx} 所示，其中 $(\pk{i},v)$ 表示一“枚”比特币，即公钥地址 $\pk{i}$ 上的 $v$ 金额的 UTXO。交易 $tx$ 按时间顺序编号，实际上只要保证交易依赖关系树后级的交易在得知地址信息的情况下晚于前级的交易即可。
+\begin{figure}[h]
+    \centering
+    \input{tx.tex}
+    \caption{交易图}
+    \label{fig:tx}
+\end{figure}
+
+
+% A: 115 = 100(B) + 10(B) + 1(C) + 1(C) + 1(B) + 1(B) + 1(B)
+% B: 120 = 100(A) + 10(C) + 10
+% C: 12 = 10(B) + 1(A) + 1(A)
+
+% 100
+% 50
+% 20
+% 10
+% 5
+% 1
+% 0.5
+% 0.1
+
+% UTXO1->Server->PK2
+
+% https://en.bitcoin.it/wiki/Privacy#Centralized_mixers
+%
+% There are several downsides to this. The mixer it must be trusted to keep secret the linkage between the incoming and outgoing transactions. Also the mixer must be trusted not to steal coins. This risk of stealing creates reputation effects; older and more established mixers will have a better reputation and will be able to charge fees far above the marginal cost of mixing coins. Also as there is no way to sell reputation, the ecosystem of mixers will be filled with occasional exit scams.
+
+
+\end{document}
